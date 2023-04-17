@@ -3,11 +3,12 @@ using System.Text;
 using Microsoft.Office.Interop.Word;
 using MicrosoftWord = Microsoft.Office.Interop.Word;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 
 namespace WordAsIDE
 {
-    
+
     public partial class Form1 : Form
     {
         private string text;
@@ -15,6 +16,10 @@ namespace WordAsIDE
         private MicrosoftWord.Application wordApp;
         private string fileName;
         private string executableName;
+        private System.Threading.Timer cooldownTimer;
+        private bool onCooldown = false;
+        private string prevLine = "";
+
         public Form1()
         {
             InitializeComponent();
@@ -27,7 +32,7 @@ namespace WordAsIDE
 
 
             wordDoc = wordApp.Documents.Add();
-            wordDoc.SaveAs(@"C:\Users\gianl\Desktop\WordAsIDE\MiDocumento.docx");
+            wordDoc.SaveAs(@"..\MiDocumento.docx");
             wordDoc.Content.Select();
             text = wordDoc.Content.Text;
             byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
@@ -40,6 +45,11 @@ namespace WordAsIDE
         {
             if (wordDoc != null)
             {
+                if (cooldownTimer == null)
+                {
+                    cooldownTimer = new System.Threading.Timer(manageCooldown, null, 2000,2000);
+                }
+
                 text = wordDoc.Content.Text;
                 Encoding iso = Encoding.GetEncoding("ISO-8859-1");
                 Encoding utf8 = Encoding.UTF8;
@@ -47,26 +57,75 @@ namespace WordAsIDE
                 byte[] utf8Bytes = Encoding.Convert(iso, utf8, isoBytes);
                 text = utf8.GetString(utf8Bytes);
 
-                MicrosoftWord.Range range = wordDoc.Range();
+                #region manageColors
+                
 
-                Find findObj = wordDoc.Content.Find;
-                findObj.ClearFormatting();
-                findObj.Text = "//*^p";
-                findObj.Forward = true;
-                findObj.Wrap = WdFindWrap.wdFindContinue;
-                findObj.Format = true;
-                findObj.Font.Color = WdColor.wdColorGray25;
-                findObj.Execute();
+                int docLine = 1;        //sel.Range.Information[WdInformation.wdFirstCharacterLineNumber];
+                string lineText = sel.Range.Paragraphs[docLine].Range.Text;
+                if (!onCooldown && (lineText != prevLine))
+                {
+                    onCooldown = true;
+                    prevLine = lineText;
+                    Debug.WriteLine(lineText);
 
-                // Buscar y cambiar el color de las líneas que comienzan por "#"
-                findObj.ClearFormatting();
-                findObj.Text = "#*^p";
-                findObj.Forward = true;
-                findObj.Wrap = WdFindWrap.wdFindContinue;
-                findObj.Format = true;
-                findObj.Font.Color = WdColor.wdColorGreen;
-                findObj.Execute();
+                    sel.Range.Paragraphs[docLine].Range.Font.Color = WdColor.wdColorBlack;
+
+                    string[] blueKeywords = { "private", "public", "protected", "using", "namespace", "class", "int", "char", "float", "double", "bool", "new", "for", "if", "while", "switch", "case", "default", "break", "continue" };
+
+                    // loop through each keyword in the list
+                    foreach (string keyword in blueKeywords)
+                    {
+                        if (lineText.Contains(keyword))
+                        {
+                            MicrosoftWord.Range keywordPos = sel.Range.Paragraphs[docLine].Range;
+                            keywordPos.Find.Execute(keyword);
+                            keywordPos.Font.Color = WdColor.wdColorBlue;
+                        }
+                    }
+                    // check if the line contains "//"
+                    if (lineText.Contains("#"))
+                    {
+                        // set the font color of the text after "//" to gray
+                        MicrosoftWord.Range textAfterHashtag = sel.Range.Paragraphs[docLine].Range;
+                        textAfterHashtag.Find.Execute("#", Forward: true);
+                        textAfterHashtag.SetRange(textAfterHashtag.End - 1, sel.Range.Paragraphs[docLine].Range.End);
+                        textAfterHashtag.Font.Color = WdColor.wdColorGreen;
+                    }
+
+                    // Comprobar si la línea contiene //
+                    if (lineText.Contains("//"))
+                    {
+                        // Cambiar el color de los caracteres restantes en la línea a gris
+                        MicrosoftWord.Range textAfterSlash = sel.Range.Paragraphs[docLine].Range;
+                        textAfterSlash.Find.Execute("//", Forward: true);
+                        textAfterSlash.SetRange(textAfterSlash.End - 2, sel.Range.Paragraphs[docLine].Range.End);
+                        textAfterSlash.Font.Color = WdColor.wdColorGray50;
+                    }
+
+                    if(lineText.Contains("\"") || lineText.Contains("\'") || lineText.Contains("”"))
+                    {
+                        Regex regex = new Regex("([\"”'])(.*?)\\1");
+
+
+                        // Obtener todas las coincidencias de la expresión regular
+                        MatchCollection matches = regex.Matches(wordDoc.Content.Text);
+
+                        // Recorrer todas las coincidencias y cambiar el color del texto que se encuentra entre comillas
+                        foreach (Match match in matches)
+                        {
+                            MicrosoftWord.Range range = wordDoc.Range(match.Index, match.Index + match.Length);
+                            range.Font.Color = WdColor.wdColorOrange;
+                        }
+                    }
+                    
+                }
+                #endregion
             }
+        }
+
+        private void manageCooldown(object state)
+        {
+            onCooldown = false;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
