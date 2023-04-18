@@ -1,10 +1,8 @@
-using Microsoft.Office.Core;
 using System.Text;
 using Microsoft.Office.Interop.Word;
 using MicrosoftWord = Microsoft.Office.Interop.Word;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
 
 
 namespace WordAsIDE
