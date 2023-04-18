@@ -4,6 +4,7 @@ using Microsoft.Office.Interop.Word;
 using MicrosoftWord = Microsoft.Office.Interop.Word;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 
 
 namespace WordAsIDE
@@ -17,11 +18,13 @@ namespace WordAsIDE
         private string executableName;
         private System.Threading.Timer cooldownTimer;
         private bool onCooldown = false;
-        private string prevLine = "";
+        string prevText = "";
+        private string[] blueKeywords = { "private", "public", "protected", "using", "namespace", "class", "int", "char", "float", "double", "bool", "new", "for", "if", "while", "switch", "case", "default", "break", "continue", "const","void","enum" };
 
         public Form1()
         {
             InitializeComponent();
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -34,19 +37,20 @@ namespace WordAsIDE
             wordDoc.SaveAs(@"..\Document.docx");
             wordDoc.Content.Select();
             text = wordDoc.Content.Text;
+            
             byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
             text = Encoding.UTF8.GetString(utf8Bytes);
             wordApp.WindowSelectionChange += new ApplicationEvents4_WindowSelectionChangeEventHandler(WindowSelectionChange);
-
         }
 
         private void WindowSelectionChange(Selection sel)
         {
             if (wordDoc != null)
             {
+
                 if (cooldownTimer == null)
                 {
-                    cooldownTimer = new System.Threading.Timer(manageCooldown, null, 2000,2000); //cololdown to not change colors too often
+                    cooldownTimer = new System.Threading.Timer(manageCooldown, null, 2000, 2000); //cololdown to not change colors too often
                 }
 
                 //format the text to UTF8
@@ -59,64 +63,68 @@ namespace WordAsIDE
 
                 #region manageColors
                 
-                int docLine = 1;       
-                string lineText = sel.Range.Paragraphs[docLine].Range.Text; //get the current line
-                if (!onCooldown && (lineText != prevLine))
+                if (!onCooldown && wordDoc.Content.Text != prevText)
                 {
+                    prevText = wordDoc.Content.Text;
                     onCooldown = true;
-                    prevLine = lineText;
 
-                    sel.Range.Paragraphs[docLine].Range.Font.Color = WdColor.wdColorBlack;
+                    sel.Range.Paragraphs[1].Range.Font.Color = WdColor.wdColorBlack;
+                    MicrosoftWord.Range docRange = wordDoc.Content;
 
-                    string[] blueKeywords = { "private", "public", "protected", "using", "namespace", "class", "int", "char", "float", "double", "bool", "new", "for", "if", "while", "switch", "case", "default", "break", "continue" };
+                    string hashtagRegex = @"#(.+)";
+                    string slashRegex = @"//(.+)";
+                    string keywordRegex = "\\b(" + string.Join("|", blueKeywords) + ")\\b";
 
-                    // check if the line contains a blue keyword
-                    foreach (string keyword in blueKeywords)
+                    foreach (Paragraph para in docRange.Paragraphs)
                     {
-                        if (lineText.Contains(keyword))
+                        MatchCollection hashtagRegexMatches = Regex.Matches(para.Range.Text, hashtagRegex);
+                        MatchCollection slashRegexMatches = Regex.Matches(para.Range.Text, slashRegex);
+                        MatchCollection keywordRegexMatches = Regex.Matches(para.Range.Text, keywordRegex);
+
+                        //change color to blue to every keyword
+                        foreach (Match match in keywordRegexMatches)
                         {
-                            // set the font color of the keyword to blue
-                            MicrosoftWord.Range keywordPos = sel.Range.Paragraphs[docLine].Range;
-                            keywordPos.Find.Execute(keyword);
-                            keywordPos.Font.Color = WdColor.wdColorBlue;
+                            int start = match.Index+1;
+                            int length = match.Length;
+                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                            matchRange.Font.Color = WdColor.wdColorBlue;
                         }
-                    }
 
-                    // check if the line contains "#"
-                    if (lineText.Contains("#"))
-                    {
-                        // set the font color of the text after "#" to greeen
-                        MicrosoftWord.Range textAfterHashtag = sel.Range.Paragraphs[docLine].Range;
-                        textAfterHashtag.Find.Execute("#", Forward: true);
-                        textAfterHashtag.SetRange(textAfterHashtag.End - 1, sel.Range.Paragraphs[docLine].Range.End);
-                        textAfterHashtag.Font.Color = WdColor.wdColorGreen;
-                    }
+                        //change color to green to every word after #
+                        foreach (Match match in hashtagRegexMatches)
+                        {
+                            int start = match.Index + 1;
+                            int length = match.Length - 1;
+                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                            matchRange.Font.Color = WdColor.wdColorGreen;
+                        }
 
-                    // check if the line contains "//"
-                    if (lineText.Contains("//"))
-                    {
-                        // set the font color of the text after "//" to gray
-                        MicrosoftWord.Range textAfterSlash = sel.Range.Paragraphs[docLine].Range;
-                        textAfterSlash.Find.Execute("//", Forward: true);
-                        textAfterSlash.SetRange(textAfterSlash.End - 2, sel.Range.Paragraphs[docLine].Range.End);
-                        textAfterSlash.Font.Color = WdColor.wdColorGray50;
+                        //change color to gray to every word after //
+                        foreach (Match match in slashRegexMatches)
+                        {
+                            int start = match.Index + 1;
+                            int length = match.Length;
+                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                            matchRange.Font.Color = WdColor.wdColorGray50;
+                        }
                     }
 
                     // check if the line contains ", ' or ”
-                    if (lineText.Contains("\"") || lineText.Contains("\'") || lineText.Contains("”"))
+                    Regex quotationRegex = new Regex("([\"”'])(.*?)\\1");
+
+                    MatchCollection quotationRegexMatches = quotationRegex.Matches(wordDoc.Content.Text);
+
+                    //change color to gray to every word between "
+                    foreach (Match match in quotationRegexMatches)
                     {
-                        Regex regex = new Regex("([\"”'])(.*?)\\1"); 
-
-                        MatchCollection matches = regex.Matches(wordDoc.Content.Text);
-
-                        foreach (Match match in matches)
-                        {
-                            // set the font color of the text after between quotation marks to orange
-                            MicrosoftWord.Range range = wordDoc.Range(match.Index, match.Index + match.Length);
-                            range.Font.Color = WdColor.wdColorOrange;
-                        }
+                        // set the font color of the text after between quotation marks to orange
+                        MicrosoftWord.Range range = wordDoc.Range(match.Index, match.Index + match.Length);
+                        range.Font.Color = WdColor.wdColorOrange;
                     }
-                    
+
                 }
                 #endregion
             }
@@ -143,8 +151,8 @@ namespace WordAsIDE
 
         private void compileTextOnClick(object sender, EventArgs e)
         {
-            fileName = @"..WordAsIDE\" + "code.cpp";
-            executableName = @"..\WordAsIDE\" + "code.exe";
+            fileName = @"..\..\..\..\..\WordAsIDE\" + "code.cpp";
+            executableName = @"..\..\..\..\..\WordAsIDE\" + "code.exe";
 
             string mingwPath = "C:\\MinGW\\bin";
             Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + mingwPath);
@@ -160,12 +168,12 @@ namespace WordAsIDE
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.CreateNoWindow = false;
             process.Start();
 
             process.StandardInput.WriteLine($"g++ {fileName} -o {executableName}");
             process.StandardInput.Flush();
-            process.StandardInput.Close();
+            //process.StandardInput.Close();
             process.WaitForExit();
 
         }
@@ -182,7 +190,7 @@ namespace WordAsIDE
 
             process.StandardInput.WriteLine($"{executableName}");
             process.StandardInput.Flush();
-            process.StandardInput.Close();
+            //process.StandardInput.Close();
             process.WaitForExit();
 
         }
