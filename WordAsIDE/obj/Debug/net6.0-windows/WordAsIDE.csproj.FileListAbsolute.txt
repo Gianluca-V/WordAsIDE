@@ -6,7 +6,6 @@ C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\bin\Debug\net6.0-windows\WordAsIDE.pd
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.csproj.AssemblyReference.cache
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\Interop.Microsoft.Office.Interop.Word.dll
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.csproj.ResolveComReference.cache
-C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.Form1.resources
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.csproj.GenerateResource.cache
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.AssemblyInfoInputs.cache
@@ -19,3 +18,4 @@ C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.ge
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\ref\WordAsIDE.dll
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\Interop.MSHTML.dll
 C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\Interop.Microsoft.Office.Core.dll
+C:\Users\gianl\Desktop\WordAsIDE\WordAsIDE\obj\Debug\net6.0-windows\WordAsIDE.WordAsIDE.resources

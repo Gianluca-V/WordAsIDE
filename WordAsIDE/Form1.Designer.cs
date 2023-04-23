@@ -1,6 +1,6 @@
 ﻿namespace WordAsIDE
 {
-    partial class Form1
+    partial class WordAsIDE
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,53 +28,105 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.CompileButton = new System.Windows.Forms.Button();
+            this.ExecuteButton = new System.Windows.Forms.Button();
+            this.CompileExecuteButton = new System.Windows.Forms.Button();
+            this.OpenFileButton = new System.Windows.Forms.Button();
+            this.MinGwPathButton = new System.Windows.Forms.Button();
+            this.SaveFileButton = new System.Windows.Forms.Button();
+            this.LanguageButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button1
+            // CompileButton
             // 
-            this.button1.Font = new System.Drawing.Font("Agency FB", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button1.Location = new System.Drawing.Point(55, 41);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(263, 186);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Compile";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.compileTextOnClick);
+            this.CompileButton.Font = new System.Drawing.Font("Agency FB", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.CompileButton.Location = new System.Drawing.Point(55, 41);
+            this.CompileButton.Name = "CompileButton";
+            this.CompileButton.Size = new System.Drawing.Size(263, 186);
+            this.CompileButton.TabIndex = 1;
+            this.CompileButton.Text = "Compile";
+            this.CompileButton.UseVisualStyleBackColor = true;
+            this.CompileButton.Click += new System.EventHandler(this.compileTextOnClick);
             // 
-            // button2
+            // ExecuteButton
             // 
-            this.button2.Font = new System.Drawing.Font("Agency FB", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(55, 281);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(263, 186);
-            this.button2.TabIndex = 2;
-            this.button2.Text = "Execute";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.ExecuteButtonOnClick);
+            this.ExecuteButton.Font = new System.Drawing.Font("Agency FB", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.ExecuteButton.Location = new System.Drawing.Point(55, 281);
+            this.ExecuteButton.Name = "ExecuteButton";
+            this.ExecuteButton.Size = new System.Drawing.Size(263, 186);
+            this.ExecuteButton.TabIndex = 2;
+            this.ExecuteButton.Text = "Execute";
+            this.ExecuteButton.UseVisualStyleBackColor = true;
+            this.ExecuteButton.Click += new System.EventHandler(this.ExecuteButtonOnClick);
             // 
-            // button3
+            // CompileExecuteButton
             // 
-            this.button3.Font = new System.Drawing.Font("Agency FB", 44F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button3.Location = new System.Drawing.Point(492, 41);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(263, 186);
-            this.button3.TabIndex = 3;
-            this.button3.Text = "Compile and execute";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.CompileExecuteOnCLick);
+            this.CompileExecuteButton.Font = new System.Drawing.Font("Agency FB", 44F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.CompileExecuteButton.Location = new System.Drawing.Point(362, 41);
+            this.CompileExecuteButton.Name = "CompileExecuteButton";
+            this.CompileExecuteButton.Size = new System.Drawing.Size(263, 186);
+            this.CompileExecuteButton.TabIndex = 3;
+            this.CompileExecuteButton.Text = "Compile and execute";
+            this.CompileExecuteButton.UseVisualStyleBackColor = true;
+            this.CompileExecuteButton.Click += new System.EventHandler(this.CompileExecuteOnCLick);
             // 
-            // Form1
+            // OpenFileButton
+            // 
+            this.OpenFileButton.Font = new System.Drawing.Font("Agency FB", 44F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.OpenFileButton.Location = new System.Drawing.Point(362, 281);
+            this.OpenFileButton.Name = "OpenFileButton";
+            this.OpenFileButton.Size = new System.Drawing.Size(263, 85);
+            this.OpenFileButton.TabIndex = 8;
+            this.OpenFileButton.Text = "Open file";
+            this.OpenFileButton.UseVisualStyleBackColor = true;
+            this.OpenFileButton.Click += new System.EventHandler(this.OpenFileButton_Click);
+            // 
+            // MinGwPathButton
+            // 
+            this.MinGwPathButton.Font = new System.Drawing.Font("Agency FB", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.MinGwPathButton.Location = new System.Drawing.Point(362, 382);
+            this.MinGwPathButton.Name = "MinGwPathButton";
+            this.MinGwPathButton.Size = new System.Drawing.Size(125, 85);
+            this.MinGwPathButton.TabIndex = 9;
+            this.MinGwPathButton.Text = "MinGw Path";
+            this.MinGwPathButton.UseVisualStyleBackColor = true;
+            this.MinGwPathButton.Click += new System.EventHandler(this.MinGwPathButton_Click);
+            // 
+            // SaveFileButton
+            // 
+            this.SaveFileButton.Font = new System.Drawing.Font("Agency FB", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.SaveFileButton.Location = new System.Drawing.Point(500, 382);
+            this.SaveFileButton.Name = "SaveFileButton";
+            this.SaveFileButton.Size = new System.Drawing.Size(125, 85);
+            this.SaveFileButton.TabIndex = 10;
+            this.SaveFileButton.Text = "Save file";
+            this.SaveFileButton.UseVisualStyleBackColor = true;
+            this.SaveFileButton.Click += new System.EventHandler(this.SaveFileButton_Click);
+            // 
+            // LanguageButton
+            // 
+            this.LanguageButton.Font = new System.Drawing.Font("Agency FB", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.LanguageButton.Location = new System.Drawing.Point(1, 1);
+            this.LanguageButton.Name = "LanguageButton";
+            this.LanguageButton.Size = new System.Drawing.Size(47, 37);
+            this.LanguageButton.TabIndex = 11;
+            this.LanguageButton.Text = "EN";
+            this.LanguageButton.UseVisualStyleBackColor = true;
+            this.LanguageButton.Click += new System.EventHandler(this.LanguageButton_Click);
+            // 
+            // WordAsIDE
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(831, 510);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
-            this.Name = "Form1";
+            this.ClientSize = new System.Drawing.Size(676, 510);
+            this.Controls.Add(this.LanguageButton);
+            this.Controls.Add(this.SaveFileButton);
+            this.Controls.Add(this.MinGwPathButton);
+            this.Controls.Add(this.OpenFileButton);
+            this.Controls.Add(this.CompileExecuteButton);
+            this.Controls.Add(this.ExecuteButton);
+            this.Controls.Add(this.CompileButton);
+            this.Name = "WordAsIDE";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
@@ -84,8 +136,12 @@
         #endregion
 
         private Button viewText;
-        private Button button1;
-        private Button button2;
-        private Button button3;
+        private Button CompileButton;
+        private Button ExecuteButton;
+        private Button CompileExecuteButton;
+        private Button OpenFileButton;
+        private Button MinGwPathButton;
+        private Button SaveFileButton;
+        private Button LanguageButton;
     }
 }

@@ -7,37 +7,63 @@ using System.Text.RegularExpressions;
 
 namespace WordAsIDE
 {
-    public partial class Form1 : Form
+    public partial class WordAsIDE : Form
     {
+        private string language = "EN";
+        private string MinGwInstalledText = "MinGW is not installed or is not installed on the default folder, please install it or provide your MinGW\\bin path. \n\n (if you already have MinGW\\bin on the PATH environment variable you can ignore this message)";
+        private string folderDescriptionText = "Please select the MinGW\\Bin folder (if not C:\\MinGW\\bin)";
+
+
         private string text;
         private Document wordDoc;
         private MicrosoftWord.Application wordApp;
-        private string fileName;
+        private string mingwPath = @"C:\\MinGW\\bin";
+        private string filePath = @"..\..\..\..\";
+        private string fileName = "";
         private string executableName;
         private System.Threading.Timer cooldownTimer;
         private bool onCooldown = false;
         string prevText = "";
         private string[] blueKeywords = { "private", "public", "protected", "using", "namespace", "class", "int", "char", "float", "double", "bool", "new", "for", "if", "while", "switch", "case", "default", "break", "continue", "const","void","enum" };
 
-        public Form1()
-        {
+        public WordAsIDE() {
             InitializeComponent();
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
+        {
+            if (!Directory.Exists(mingwPath))
+            {
+                MessageBox.Show(MinGwInstalledText);
+            }
+                OpenWord();
+        }
+
+        private void OpenWord()
         {
             wordApp = new MicrosoftWord.Application();
             wordApp.Visible = true;
 
 
             wordDoc = wordApp.Documents.Add();
-            wordDoc.SaveAs(@"..\Document.docx");
             wordDoc.Content.Select();
-            text = wordDoc.Content.Text;
-            
-            byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
-            text = Encoding.UTF8.GetString(utf8Bytes);
+            fileName = wordDoc.Name;
+            GetWordText();
+
+            wordApp.WindowSelectionChange += new ApplicationEvents4_WindowSelectionChangeEventHandler(WindowSelectionChange);
+        }
+
+        private void OpenWord(string filePath)
+        {
+            wordApp = new MicrosoftWord.Application();
+            wordApp.Visible = true;
+
+
+            wordDoc = wordApp.Documents.Open(filePath);
+            wordDoc.Content.Select();
+
+            GetWordText();
+
             wordApp.WindowSelectionChange += new ApplicationEvents4_WindowSelectionChangeEventHandler(WindowSelectionChange);
         }
 
@@ -51,16 +77,10 @@ namespace WordAsIDE
                     cooldownTimer = new System.Threading.Timer(manageCooldown, null, 2000, 2000); //cololdown to not change colors too often
                 }
 
-                //format the text to UTF8
-                text = wordDoc.Content.Text;
-                Encoding iso = Encoding.GetEncoding("ISO-8859-1");
-                Encoding utf8 = Encoding.UTF8;
-                byte[] isoBytes = iso.GetBytes(text);
-                byte[] utf8Bytes = Encoding.Convert(iso, utf8, isoBytes);
-                text = utf8.GetString(utf8Bytes);
+                GetWordText();
 
                 #region manageColors
-                
+
                 if (!onCooldown && wordDoc.Content.Text != prevText)
                 {
                     prevText = wordDoc.Content.Text;
@@ -133,30 +153,53 @@ namespace WordAsIDE
             onCooldown = false;
         }
 
+        private void GetWordText()
+        {
+            text = wordDoc.Content.Text;
+            Encoding iso = Encoding.GetEncoding("ISO-8859-1");
+            Encoding utf8 = Encoding.UTF8;
+            byte[] isoBytes = iso.GetBytes(text);
+            byte[] utf8Bytes = Encoding.Convert(iso, utf8, isoBytes);
+            text = utf8.GetString(utf8Bytes);
+        }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
 
             if (wordDoc != null)
             {
-                wordDoc.Close();
+                try
+                {
+                    wordDoc.Close();
+                }
+                catch (Exception ex) { }
             }
             if (wordApp != null)
             {
-                wordApp.Quit();
+                try
+                {
+                    wordApp.Quit();
+                }
+                catch (Exception ex) { }
             }
+            System.Windows.Forms.Application.Exit();
         }
 
         private void compileTextOnClick(object sender, EventArgs e)
         {
-            fileName = @"..\..\..\..\..\WordAsIDE\" + "code.cpp";
-            executableName = @"..\..\..\..\..\WordAsIDE\" + "code.exe";
+            GetWordText();
+            
+            string cppFileName = fileName + ".cpp";
+            executableName = fileName +".exe";
 
-            string mingwPath = "C:\\MinGW\\bin";
+
+            
             Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + mingwPath);
 
 
-            using (StreamWriter archivo = new StreamWriter(fileName))
+
+            using (StreamWriter archivo = new StreamWriter(cppFileName))
             {
                 archivo.Write(text);
             }
@@ -169,7 +212,7 @@ namespace WordAsIDE
             process.StartInfo.CreateNoWindow = false;
             process.Start();
 
-            process.StandardInput.WriteLine($"g++ {fileName} -o {executableName}");
+            process.StandardInput.WriteLine($"g++ {cppFileName} -o {executableName}");
             process.StandardInput.Flush();
             //process.StandardInput.Close();
             process.WaitForExit();
@@ -183,7 +226,7 @@ namespace WordAsIDE
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.CreateNoWindow = false;
             process.Start();
 
             process.StandardInput.WriteLine($"{executableName}");
@@ -197,6 +240,83 @@ namespace WordAsIDE
         {
             compileTextOnClick(sender, e);
             ExecuteButtonOnClick(sender, e);
+        }
+
+        private void OpenFileButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.InitialDirectory = "C:\\";
+            openFileDialog.Filter = "Word documents (*.doc;*.docx)|*.doc;*.docx";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileName = openFileDialog.FileName;
+                OpenWord(openFileDialog.FileName);
+            }
+        }
+
+        private void SaveFileButton_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Title = "Save a text file";
+            saveFileDialog.Filter = "Word documents (*.doc;*.docx)|*.doc;*.docx";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileName = saveFileDialog.FileName;
+
+                wordDoc.SaveAs2(fileName);
+            }
+        }
+
+        private void MinGwPathButton_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.Description = folderDescriptionText;
+
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                mingwPath = folderBrowserDialog.SelectedPath;
+            }
+        }
+
+        private void LanguageButton_Click(object sender, EventArgs e)
+        {
+            if (language == "EN")
+            {
+                language = "ES";
+                LanguageButton.Text = language;
+                CompileButton.Text = "Compilar";
+                ExecuteButton.Text = "Ejecutar";
+                CompileExecuteButton.Text = "Compilar y ejecutar";
+                OpenFileButton.Text = "Abrir archivo";
+                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 38);
+                SaveFileButton.Text = "Guardar archivo";
+                SaveFileButton.Font = new System.Drawing.Font("Agency FB", 22);
+                MinGwPathButton.Text = "Ruta MinGW";
+                MinGwInstalledText = "MinGW no está instalado o no está instalado en la carpeta predeterminada, instálelo o proporcione su ruta MinGW\\bin. \n\n(si ya tiene MinGW\\bin en la variable de entorno PATH, puede ignorar este mensaje)";
+                folderDescriptionText = "Seleccione la carpeta MinGW\\Bin (si no es C:\\MinGW\\bin)";
+            }
+            else
+            {
+                language = "EN";
+                LanguageButton.Text = language;
+                CompileButton.Text = "Compile";
+                ExecuteButton.Text = "Execute";
+                CompileExecuteButton.Text = "Compile and execute";
+                OpenFileButton.Text = "Open file";
+                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 44);
+                SaveFileButton.Text = "Save file";
+                SaveFileButton.Font = new System.Drawing.Font("Agency FB", 28);
+                MinGwPathButton.Text = "MinGW path";
+                MinGwInstalledText = "MinGW is not installed or is not installed on the default folder, please install it or provide your MinGW\\bin path. \n\n (if you already have MinGW\\bin on the PATH environment variable you can ignore this message)";
+                folderDescriptionText = "Please select the MinGW\\Bin folder (if not C:\\MinGW\\bin)";
+            }
+
+            
         }
     }
 }
