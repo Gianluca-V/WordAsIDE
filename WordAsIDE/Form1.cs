@@ -96,7 +96,7 @@ namespace WordAsIDE
             onCooldown = true;
 
 
-            if (theme == "Dark")
+            if (theme == "Dark")        //set the color of text based on theme
             {
                 sel.Range.Paragraphs[1].Range.Font.Color = WdColor.wdColorWhite;
             }
@@ -169,7 +169,7 @@ namespace WordAsIDE
         }
 
         private void GetWordText()
-        {
+        {   //get text and set it to UTF8
             text = wordDoc.Content.Text;
             Encoding iso = Encoding.GetEncoding("ISO-8859-1");
             Encoding utf8 = Encoding.UTF8;
@@ -259,7 +259,8 @@ namespace WordAsIDE
 
         private void OpenFileButton_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            //open word doc
+            OpenFileDialog openFileDialog = new OpenFileDialog();       //open a OpenFileDialog 
 
             openFileDialog.InitialDirectory = "C:\\";
             openFileDialog.Filter = "Word documents (*.doc;*.docx)|*.doc;*.docx";
@@ -275,7 +276,8 @@ namespace WordAsIDE
 
         private void SaveFileButton_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            //save word doc
+            SaveFileDialog saveFileDialog = new SaveFileDialog();           //open a saveFileDialog
             saveFileDialog.Title = "Save a text file";
             saveFileDialog.Filter = "Word documents (*.doc;*.docx)|*.doc;*.docx";
 
@@ -289,6 +291,7 @@ namespace WordAsIDE
 
         private void MinGwPathButton_Click(object sender, EventArgs e)
         {
+            //set the MinGW path to a diferent folder than the default
             FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
             folderBrowserDialog.Description = folderDescriptionText;
 
@@ -300,7 +303,8 @@ namespace WordAsIDE
 
         private void LanguageButton_Click(object sender, EventArgs e)
         {
-            if (language == "EN")
+            //change the language
+            if (language == "EN")  //change the language to Spanish
             {
                 language = "ES";
                 LanguageButton.Text = language;
@@ -317,7 +321,7 @@ namespace WordAsIDE
                 MinGwInstalledText = "MinGW no está instalado o no está instalado en la carpeta predeterminada, instálelo o proporcione su ruta MinGW\\bin. \n\n(si ya tiene MinGW\\bin en la variable de entorno PATH, puede ignorar este mensaje)";
                 folderDescriptionText = "Seleccione la carpeta MinGW\\Bin (si no es C:\\MinGW\\bin)";
             }
-            else
+            else                   //change the language to English
             {
                 language = "EN";
                 LanguageButton.Text = language;
@@ -338,7 +342,8 @@ namespace WordAsIDE
 
         private void ThemeButton_Click(object sender, EventArgs e)
         {
-            if(theme == "Light")
+            //change the word theme
+            if(theme == "Light")    //cahnge to Light Theme
             {
                 theme = "Dark";
                 prevTheme = "light";
@@ -349,7 +354,7 @@ namespace WordAsIDE
                 Selection sel = wordApp.Selection;
                 ManageColors(sel);
             }
-            else
+            else                   //cahnge to Dark Theme
             {
                 theme = "Light";
                 prevTheme = "Dark";
