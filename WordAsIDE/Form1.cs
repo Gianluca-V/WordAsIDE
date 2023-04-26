@@ -13,6 +13,8 @@ namespace WordAsIDE
         private string MinGwInstalledText = "MinGW is not installed or is not installed on the default folder, please install it or provide your MinGW\\bin path. \n\n (if you already have MinGW\\bin on the PATH environment variable you can ignore this message)";
         private string folderDescriptionText = "Please select the MinGW\\Bin folder (if not C:\\MinGW\\bin)";
 
+        private string theme = "light";
+        private string prevTheme = "light";
 
         private string text;
         private Document wordDoc;
@@ -37,6 +39,7 @@ namespace WordAsIDE
                 MessageBox.Show(MinGwInstalledText);
             }
                 OpenWord();
+            wordDoc.ActiveWindow.View.Type = WdViewType.wdWebView;
         }
 
         private void OpenWord()
@@ -79,72 +82,84 @@ namespace WordAsIDE
 
                 GetWordText();
 
-                #region manageColors
-
-                if (!onCooldown && wordDoc.Content.Text != prevText)
+                if ((!onCooldown && wordDoc.Content.Text != prevText) || theme != prevTheme)
                 {
-                    prevText = wordDoc.Content.Text;
-                    onCooldown = true;
-
-                    sel.Range.Paragraphs[1].Range.Font.Color = WdColor.wdColorBlack;
-                    MicrosoftWord.Range docRange = wordDoc.Content;
-
-                    string hashtagRegex = @"#(.+)";
-                    string slashRegex = @"//(.+)";
-                    string keywordRegex = "\\b(" + string.Join("|", blueKeywords) + ")\\b";
-
-                    foreach (Paragraph para in docRange.Paragraphs)
-                    {
-                        MatchCollection hashtagRegexMatches = Regex.Matches(para.Range.Text, hashtagRegex);
-                        MatchCollection slashRegexMatches = Regex.Matches(para.Range.Text, slashRegex);
-                        MatchCollection keywordRegexMatches = Regex.Matches(para.Range.Text, keywordRegex);
-
-                        //change color to blue to every keyword
-                        foreach (Match match in keywordRegexMatches)
-                        {
-                            int start = match.Index+1;
-                            int length = match.Length;
-                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
-                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
-                            matchRange.Font.Color = WdColor.wdColorBlue;
-                        }
-
-                        //change color to green to every word after #
-                        foreach (Match match in hashtagRegexMatches)
-                        {
-                            int start = match.Index + 1;
-                            int length = match.Length - 1;
-                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
-                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
-                            matchRange.Font.Color = WdColor.wdColorGreen;
-                        }
-
-                        //change color to gray to every word after //
-                        foreach (Match match in slashRegexMatches)
-                        {
-                            int start = match.Index + 1;
-                            int length = match.Length;
-                            MicrosoftWord.Range matchRange = para.Range.Characters[start];
-                            matchRange.MoveEnd(WdUnits.wdCharacter, length);
-                            matchRange.Font.Color = WdColor.wdColorGray50;
-                        }
-                    }
-
-                    // check if the line contains ", ' or ”
-                    Regex quotationRegex = new Regex("([\"”'])(.*?)\\1");
-
-                    MatchCollection quotationRegexMatches = quotationRegex.Matches(wordDoc.Content.Text);
-
-                    //change color to gray to every word between "
-                    foreach (Match match in quotationRegexMatches)
-                    {
-                        // set the font color of the text after between quotation marks to orange
-                        MicrosoftWord.Range range = wordDoc.Range(match.Index, match.Index + match.Length);
-                        range.Font.Color = WdColor.wdColorOrange;
-                    }
-
+                    ManageColors(sel);
                 }
-                #endregion
+            }
+        }
+
+        private void ManageColors(Selection sel)
+        {
+            prevTheme = theme;
+            prevText = wordDoc.Content.Text;
+            onCooldown = true;
+
+
+            if (theme == "Dark")
+            {
+                sel.Range.Paragraphs[1].Range.Font.Color = WdColor.wdColorWhite;
+            }
+            else
+            {
+                sel.Range.Paragraphs[1].Range.Font.Color = WdColor.wdColorBlack;
+            }
+
+            MicrosoftWord.Range docRange = wordDoc.Content;
+
+            string hashtagRegex = @"#(.+)";
+            string slashRegex = @"//(.+)";
+            string keywordRegex = "\\b(" + string.Join("|", blueKeywords) + ")\\b";
+
+            foreach (Paragraph para in docRange.Paragraphs)
+            {
+                MatchCollection hashtagRegexMatches = Regex.Matches(para.Range.Text, hashtagRegex);
+                MatchCollection slashRegexMatches = Regex.Matches(para.Range.Text, slashRegex);
+                MatchCollection keywordRegexMatches = Regex.Matches(para.Range.Text, keywordRegex);
+
+                //change color to blue to every keyword
+                foreach (Match match in keywordRegexMatches)
+                {
+                    int start = match.Index + 1;
+                    int length = match.Length;
+                    MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                    matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                    if (theme == "light") { matchRange.Font.Color = WdColor.wdColorBlue; }
+                    else { matchRange.Font.Color = WdColor.wdColorLightBlue; }
+                }
+
+                //change color to green to every word after #
+                foreach (Match match in hashtagRegexMatches)
+                {
+                    int start = match.Index + 1;
+                    int length = match.Length - 1;
+                    MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                    matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                    matchRange.Font.Color = WdColor.wdColorSeaGreen;
+                }
+
+                //change color to gray to every word after //
+                foreach (Match match in slashRegexMatches)
+                {
+                    int start = match.Index + 1;
+                    int length = match.Length;
+                    MicrosoftWord.Range matchRange = para.Range.Characters[start];
+                    matchRange.MoveEnd(WdUnits.wdCharacter, length);
+                    matchRange.Font.Color = WdColor.wdColorGray50;
+                }
+            }
+
+            // check if the line contains ", ' or ”
+            Regex quotationRegex = new Regex("([\"”'])(.*?)\\1");
+
+            MatchCollection quotationRegexMatches = quotationRegex.Matches(wordDoc.Content.Text);
+
+            //change color to gray to every word between "
+            foreach (Match match in quotationRegexMatches)
+            {
+                // set the font color of the text after between quotation marks to orange
+                MicrosoftWord.Range range = wordDoc.Range(match.Index, match.Index + match.Length);
+                range.Font.Color = WdColor.wdColorOrange;
             }
         }
 
@@ -292,8 +307,10 @@ namespace WordAsIDE
                 CompileButton.Text = "Compilar";
                 ExecuteButton.Text = "Ejecutar";
                 CompileExecuteButton.Text = "Compilar y ejecutar";
+                NewFileButton.Text = "Nuevo archivo";
+                NewFileButton.Font = new System.Drawing.Font("Agency FB", 22);
                 OpenFileButton.Text = "Abrir archivo";
-                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 38);
+                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 22);
                 SaveFileButton.Text = "Guardar archivo";
                 SaveFileButton.Font = new System.Drawing.Font("Agency FB", 22);
                 MinGwPathButton.Text = "Ruta MinGW";
@@ -307,16 +324,47 @@ namespace WordAsIDE
                 CompileButton.Text = "Compile";
                 ExecuteButton.Text = "Execute";
                 CompileExecuteButton.Text = "Compile and execute";
+                NewFileButton.Text = "New file";
+                NewFileButton.Font = new System.Drawing.Font("Agency FB", 28);
                 OpenFileButton.Text = "Open file";
-                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 44);
+                OpenFileButton.Font = new System.Drawing.Font("Agency FB", 28);
                 SaveFileButton.Text = "Save file";
                 SaveFileButton.Font = new System.Drawing.Font("Agency FB", 28);
                 MinGwPathButton.Text = "MinGW path";
                 MinGwInstalledText = "MinGW is not installed or is not installed on the default folder, please install it or provide your MinGW\\bin path. \n\n (if you already have MinGW\\bin on the PATH environment variable you can ignore this message)";
                 folderDescriptionText = "Please select the MinGW\\Bin folder (if not C:\\MinGW\\bin)";
             }
+        }
 
-            
+        private void ThemeButton_Click(object sender, EventArgs e)
+        {
+            if(theme == "Light")
+            {
+                theme = "Dark";
+                prevTheme = "light";
+                ThemeButton.Text = theme;
+                wordDoc.Background.Fill.ForeColor.RGB = (int)WdColor.wdColorGray90;
+                wordDoc.Background.Fill.Solid();
+                wordDoc.Content.Font.Color = WdColor.wdColorWhite;
+                Selection sel = wordApp.Selection;
+                ManageColors(sel);
+            }
+            else
+            {
+                theme = "Light";
+                prevTheme = "Dark";
+                ThemeButton.Text = theme;
+                wordDoc.Background.Fill.Solid();
+                wordDoc.Background.Fill.ForeColor.RGB = (int)WdColor.wdColorWhite;
+                wordDoc.Content.Font.Color = WdColor.wdColorBlack;
+                Selection sel = wordApp.Selection;
+                ManageColors(sel);
+            }
+        }
+
+        private void NewFileButton_Click(object sender, EventArgs e)
+        {
+            OpenWord();
         }
     }
 }
